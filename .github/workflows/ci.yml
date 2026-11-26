@@ -1,0 +1,43 @@
+# CI da lib socialflux-audit: compila e roda os testes (PostgreSQL embarcado, sem Docker).
+# A lib depende da socialflux-events (CorrelationId e EventIds), que vem do repositório social-flux-lib-events.
+name: CI lib socialflux-audit
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+concurrency:
+  group: ci-lib-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: libs/socialflux-audit
+
+      - name: Código da lib socialflux-events
+        uses: actions/checkout@v4
+        with:
+          repository: petersonwsf/social-flux-lib-events
+          path: libs/socialflux-events
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: "**/pom.xml"
+
+      - name: Instalar a lib socialflux-events
+        run: mvn -B -ntp -q -DskipTests -f libs/socialflux-events/pom.xml install
+
+      - name: Testes
+        run: mvn -B -ntp -f libs/socialflux-audit/pom.xml test
