@@ -15,7 +15,7 @@ ação do serviço ── AuditRecorder.inTransaction / independent ─► audit
 
 ```
 socialflux-audit/
-├── pom.xml                       parent spring-boot-starter-parent 4.1.2; dependências: starter-jdbc, starter-jackson, spring-web, socialflux-events; testes: embedded-postgres
+├── pom.xml                       parent spring-boot-starter-parent 4.1.2; dependências: starter-jdbc, starter-jackson, spring-web, servlet-api (opcional), socialflux-events; testes: embedded-postgres
 ├── .gitignore                    ignora target/ e arquivos de IDE
 ├── README.md                     o que a biblioteca entrega, como usar, configuração
 ├── .github/workflows/ci.yml      CI: instala a socialflux-events e roda os testes
@@ -39,6 +39,7 @@ socialflux-audit/
 | `OutboxAuditRecorder.java` | Grava em `audit_outbox` com `TransactionTemplate` `MANDATORY` ou `REQUIRES_NEW` |
 | `AuditOutbox.java` | SQL da tabela: inserir, travar pendentes, marcar enviados/recusados, contar falhas, apagar enviados antigos em lote |
 | `AuditRelay.java` | Envio agendado em lote, backoff global, falhos por recusa ou tentativas esgotadas, retomada, limpeza dos enviados |
+| `RequestClient.java` | IP e user agent da requisição HTTP em curso (RequestContextHolder), usados quando a entrada não os traz |
 | `AuditClient.java` | `RestClient` do audit-service: chave `Bearer`, timeouts curtos, `X-Correlation-Id` |
 | `InMemoryAuditRecorder.java` | Recorder de testes/dev: guarda os últimos 1000 eventos em memória; `inTransaction` só registra se a transação confirmar |
 

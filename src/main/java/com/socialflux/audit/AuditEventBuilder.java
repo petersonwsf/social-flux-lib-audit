@@ -68,8 +68,10 @@ public class AuditEventBuilder {
         if (entry.targetId() != null) {
             payload.put("targetId", entry.targetId().toString());
         }
-        putIfPresent(payload, "ip", cut(entry.ip(), MAX_IP));
-        putIfPresent(payload, "userAgent", cut(entry.userAgent(), MAX_USER_AGENT));
+        // Sem IP/user agent explícitos, usa os da requisição em curso (eventos de consumidor ou job não têm requisição).
+        RequestClient.Info request = entry.ip() == null && entry.userAgent() == null ? RequestClient.current() : null;
+        putIfPresent(payload, "ip", cut(request != null ? request.ip() : entry.ip(), MAX_IP));
+        putIfPresent(payload, "userAgent", cut(request != null ? request.userAgent() : entry.userAgent(), MAX_USER_AGENT));
         putIfPresent(payload, "correlationId", CorrelationId.current());
         payload.put("schemaVersion", 1);
         Map<String, Object> detail = cleanDetail(entry);

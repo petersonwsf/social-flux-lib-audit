@@ -36,6 +36,12 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
         </dependency>
+        <!-- IP e user agent da requisição em curso (só compilação; os serviços já trazem o servlet). -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <optional>true</optional>
+        </dependency>
         <!-- Só para ler o CorrelationId e gerar UUIDv7 (EventIds). -->
         <dependency>
             <groupId>com.socialflux</groupId>

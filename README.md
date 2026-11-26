@@ -76,6 +76,8 @@ Depende só de `socialflux-events` (para ler o `CorrelationId` e gerar UUIDv7).
   categorias. O `AuditEventBuilder` descarta (com um WARN) chaves do `detail` que contenham `password`, `senha`, `secret`,
   `token`, `cookie`, `authorization`, `email`, `phone`, `telefone`, `cpf`, `birth` ou `nascimento` (como o audit-service), e
   o `detail` inteiro se passar de 4 KB.
+- IP e user agent: se a entrada não os informa (`client(ip, userAgent)`), vêm da requisição HTTP em curso (`RequestClient`);
+  em consumidor de evento ou job não há requisição, e o evento vai sem eles. Só chegam ao audit-service, nunca aos logs.
 - O `correlationId` do fluxo atual (MDC) vai no evento, ligando-o aos logs do Grafana.
 
 ## Entrega

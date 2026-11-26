@@ -15,6 +15,9 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -301,6 +304,33 @@ class SocialFluxAuditTest {
             AuditEventBuilder.Built big = builder.build(AuditEntry.success("PROFILE_UPDATED")
                     .detail("texto", "x".repeat(5000)));
             assertThat(JsonMapper.builder().build().readTree(big.json()).has("detail")).isFalse();
+        });
+    }
+
+    @Test
+    void usesTheCurrentRequestClientWhenTheEntryHasNone() {
+        runner().run(ctx -> {
+            AuditEventBuilder builder = ctx.getBean(AuditEventBuilder.class);
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.setRemoteAddr("203.0.113.7");
+            request.addHeader("User-Agent", "Navegador/2.0");
+            RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+            try {
+                JsonNode implicit = JsonMapper.builder().build()
+                        .readTree(builder.build(AuditEntry.success("LOGOUT")).json());
+                assertThat(implicit.path("ip").asString()).isEqualTo("203.0.113.7");
+                assertThat(implicit.path("userAgent").asString()).isEqualTo("Navegador/2.0");
+
+                JsonNode explicit = JsonMapper.builder().build().readTree(
+                        builder.build(AuditEntry.success("LOGOUT").client("198.51.100.1", null)).json());
+                assertThat(explicit.path("ip").asString()).isEqualTo("198.51.100.1");
+                assertThat(explicit.has("userAgent")).isFalse();
+            } finally {
+                RequestContextHolder.resetRequestAttributes();
+            }
+            // Fora de uma requisição (job, consumidor) não há IP.
+            assertThat(JsonMapper.builder().build().readTree(builder.build(AuditEntry.success("LOGOUT")).json())
+                    .has("ip")).isFalse();
         });
     }
 
