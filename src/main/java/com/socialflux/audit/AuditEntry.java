@@ -59,8 +59,11 @@ public record AuditEntry(String action, Outcome outcome, UUID actorId, ActorType
         return new AuditEntry(action, outcome, actorId, actorType, targetType, targetId, ip, userAgent, detail);
     }
 
-    /** Acrescenta um campo ao {@code detail} (valores simples, listas ou mapas; nunca dado pessoal). */
+    /** Acrescenta um campo ao {@code detail} (valores simples, listas ou mapas; nunca dado pessoal). Valor nulo é ignorado. */
     public AuditEntry detail(String key, Object value) {
+        if (value == null) {
+            return this;   // campo sem valor simplesmente não vai
+        }
         Map<String, Object> copy = new LinkedHashMap<>(detail);
         copy.put(key, value);
         return new AuditEntry(action, outcome, actorId, actorType, targetType, targetId, ip, userAgent, copy);
